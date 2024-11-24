@@ -1,0 +1,42 @@
+[
+    {
+        "nombre": "evento1",
+        "fecha": "2025/09/19",
+        "cupo": 20,
+        "lugar": "cali",
+        "hora": "17:30",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "nombre": "evento3",
+        "fecha": "09/03/2025",
+        "cupo": 20,
+        "lugar": "palmira",
+        "hora": "17:30",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/adoptar.jpg"
+    },
+    {
+        "nombre": "evento2",
+        "fecha": "12/05/2016",
+        "cupo": 20,
+        "lugar": "cali",
+        "hora": "17:30",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/adoptar.jpg"
+    },
+    {
+        "nombre": "evento5",
+        "fecha": "25/09/2505",
+        "cupo": 30,
+        "lugar": "cali",
+        "hora": "16:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "nombre": "evento4",
+        "fecha": "25/09/2505",
+        "cupo": 30,
+        "lugar": "cali",
+        "hora": "16:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    }
+]

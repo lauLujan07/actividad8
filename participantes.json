@@ -1,0 +1,22 @@
+[
+    {
+        "evento": "evento1",
+        "nombre": "laura",
+        "tipo_documento": "TI",
+        "numero_documento": "1110294607",
+        "telefono": "3158854955",
+        "direccion": "mavj kaj",
+        "tipo_participante": "Profesor",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "evento": "evento2",
+        "nombre": "sofia",
+        "tipo_documento": "TI",
+        "numero_documento": "11102946548",
+        "telefono": "3158854955",
+        "direccion": "mavj kaj",
+        "tipo_participante": "Profesor",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    }
+]
