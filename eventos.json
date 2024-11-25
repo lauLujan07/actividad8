@@ -38,5 +38,45 @@
         "lugar": "cali",
         "hora": "16:50",
         "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "nombre": "evento6",
+        "fecha": "15/06/2425",
+        "cupo": 40,
+        "lugar": "cali",
+        "hora": "21:00",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/adoptar.jpg"
+    },
+    {
+        "nombre": "evento7",
+        "fecha": "14/05/2001",
+        "cupo": 10,
+        "lugar": "cali",
+        "hora": "19:30",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/adoptar.jpg"
+    },
+    {
+        "nombre": "evento8",
+        "fecha": "25/04/5084",
+        "cupo": 20,
+        "lugar": "lsknvols",
+        "hora": "22:00",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "nombre": "evento9",
+        "fecha": "18/07/2047",
+        "cupo": 50,
+        "lugar": "sljvnwsv ",
+        "hora": "18:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/perros.jpg"
+    },
+    {
+        "nombre": "avento10",
+        "fecha": "30/08/2024",
+        "cupo": 80,
+        "lugar": "mnzb ",
+        "hora": "19:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/Captura de pantalla 2023-08-29 183730.png"
     }
 ]

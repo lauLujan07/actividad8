@@ -1,8 +1,8 @@
-import PySimpleGUI as sg
 import json
 import os
 import re
 import pandas as pd
+import PySimpleGUI as sg
 
 # Crear archivo usuarios.txt
 with open("usuarios.txt", "w") as archivo:
@@ -36,7 +36,7 @@ def ventana_login():
     return sg.Window("Login", layout)
 
 # Diseño de la ventana principal con pestañas
-def ventana_principal(eventos, participantes):
+def ventana_principal(eventos, participantes, configuracion):
     layout = [
         [sg.TabGroup([  
             [sg.Tab('Eventos', [
@@ -49,7 +49,7 @@ def ventana_principal(eventos, participantes):
                 [sg.Button("Agregar Evento"), sg.Button("Modificar Evento"), sg.Button("Eliminar Evento")],
                 [sg.Text("Eventos guardados: ")],
                 [sg.Listbox(values=[e["nombre"] for e in eventos], size=(50, 10), key="lista_eventos")],
-                [sg.Image(key="imagen_evento", size=(200, 200))]
+                [sg.Image(key="imagen_evento", size=(200, 200))],
             ])],
             [sg.Tab('Participantes', [
                 [sg.Text("Evento"), sg.Combo([e["nombre"] for e in eventos], key="evento", readonly=True)],
@@ -62,10 +62,29 @@ def ventana_principal(eventos, participantes):
                 [sg.Text("Imagen"), sg.Input(key="imagen_participante"), sg.FileBrowse("Seleccionar imagen")],
                 [sg.Button("Agregar Participante"), sg.Button("Modificar Participante"), sg.Button("Eliminar Participante")],
                 [sg.Listbox(values=[p["nombre"] for p in participantes], size=(50, 10), key="lista_participantes")]
+            ])],
+            [sg.Tab('Configuración', [
+                [sg.Checkbox('Validar aforo al agregar participantes', key='-VALIDAR_AFORO-', default=configuracion.get('-VALIDAR_AFORO-', True))],
+                [sg.Checkbox('Solicitar imagen', key='-SOLICITAR_IMAGEN-', default=configuracion.get('-SOLICITAR_IMAGEN-', True))],
+                [sg.Checkbox('Solicitar registros', key='-SOLICITAR_REGISTROS-', default=configuracion.get('-SOLICITAR_REGISTROS-', True))],
+                [sg.Checkbox('Eliminar registros', key='-ELIMINAR_REGISTROS-', default=configuracion.get('-ELIMINAR_REGISTROS-', True))],
+                [sg.Button('Guardar')]
+            ])],
+            [sg.Tab('Análisis', [
+                [sg.Text('Participantes que fueron a todos los eventos')],
+                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS-', disabled=True)],
+                [sg.Text('Participantes que fueron al menos a un evento')],
+                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS_2-', disabled=True)],
+                [sg.Text('Participantes que fueron solo al primer evento')],
+                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS_3-', disabled=True)],
+                [sg.Button('Participantes que fueron a todos los eventos')],
+                [sg.Button('Participantes que fueron al menos a un evento')],
+                [sg.Button('Participantes que fueron solo al primer evento')]
             ])]
         ])]
     ]
-    return sg.Window('Aplicación de Gestión de Eventos y Participantes', layout)
+    return sg.Window('Gestión de Evento', layout)
+
 
 # Cargar eventos desde JSON
 def cargar_eventos():
@@ -184,7 +203,6 @@ def eliminar_evento(eventos, nombre_seleccionado):
     except Exception as e:
         return False, f"Error al eliminar el evento: {e}"
 
-
 # actualizar la lista de eventos
 def actualizar_interfaz_eventos(eventos, window):
 
@@ -193,7 +211,6 @@ def actualizar_interfaz_eventos(eventos, window):
     window["lista_eventos"].update(values=nombres_eventos)
     # Actualizar pestaña de participantes
     window["evento"].update(values=nombres_eventos)
-    
     
 def guardar_participantes(participantes):
     """
@@ -205,7 +222,6 @@ def guardar_participantes(participantes):
     except Exception as e:
         sg.popup(f"Error al guardar los participantes: {e}")
         
-
 # Agregar participante
 def agregar_participante(participantes, eventos, datos):
     try:
@@ -277,100 +293,103 @@ def modificar_participante(participantes, numero_documento_seleccionado, nuevos_
         return False, str(e)
     except FileNotFoundError as e:
         return False, str(e)
+    
+# Cargar participantes desde un archivo JSON
+def cargar_participantes():
+    if os.path.exists("participantes.json"):
+        try:
+            with open("participantes.json", "r") as archivo:
+                participantes = json.load(archivo)
+                return participantes
+        except json.JSONDecodeError:
+            sg.popup("Error al leer el archivo participantes.json. Archivo corrupto.")
+            return []
+    return []  # Si no existe el archivo, retorna una lista vacía
 
-# Eliminar participante
-def eliminar_participante(participantes, numero_documento_seleccionado):
+
+    
+# Función para cargar la configuración desde un archivo JSON
+def cargar_configuracion():
+    if os.path.exists("configuracion.json"):
+        try:
+            with open("configuracion.json", "r") as archivo:
+                configuracion = json.load(archivo)
+                return configuracion
+        except json.JSONDecodeError:
+            sg.popup("Error al leer el archivo de configuración. Archivo corrupto.")
+            return {}  # Si el archivo está corrupto, retorna un diccionario vacío
+    return {
+        '-VALIDAR_AFORO-': True,
+        '-SOLICITAR_IMAGEN-': True,
+        '-SOLICITAR_REGISTROS-': True,
+        '-ELIMINAR_REGISTROS-': True
+    }  
+
+
+# Función para guardar la configuración en un archivo JSON
+def guardar_configuracion(configuracion):
     try:
-        if not numero_documento_seleccionado:
-            raise ValueError("Debe seleccionar un participante para eliminar.")
-        
-        # Eliminar el participante
-        for participante in participantes:
-            if participante["numero_documento"] == numero_documento_seleccionado:
-                participantes.remove(participante)
-                guardar_participantes(participantes)
-                return True, "Participante eliminado exitosamente."
-        
-        return False, "No se encontró el participante seleccionado."
-    
-    except ValueError as e:
-        return False, str(e)
-    
-def actualizar_interfaz_participantes(participantes, window):
-    """
-    Actualiza la lista de participantes en la interfaz de la pestaña de Participantes.
-    """
-    nombres_participantes = [p["nombre"] for p in participantes]
-    window["lista_participantes"].update(values=nombres_participantes)
-    
-    
-# Flujo principal para la pestaña de Participantes
-def gestionar_participantes(participantes, eventos, window):
-    while True:
-        event, values = window.read()
-
-        if event == sg.WINDOW_CLOSED or event == "Salir":
-            break
-
-        # Agregar participante
-        if event == "Agregar Participante":
-            datos = {
-                "evento": values["evento"],
-                "nombre": values["nombre_participante"],
-                "tipo_documento": values["tipo_documento"],
-                "numero_documento": values["numero_documento"],
-                "telefono": values["telefono"],
-                "direccion": values["direccion"],
-                "tipo_participante": values["tipo_participante"],
-                "imagen": values["imagen_participante"]
-            }
-            exito, mensaje = agregar_participante(participantes, eventos, datos)
-            sg.popup(mensaje)
-            if exito:
-                # Actualizar la lista de participantes
-                actualizar_interfaz_participantes(participantes, window)
-
-        # Modificar participante
-        elif event == "Modificar Participante":
-            seleccionado = values["lista_participantes"]
-            if seleccionado:
-                numero_documento_seleccionado = seleccionado[0]
-                nuevos_datos = {
-                    "evento": values["evento"],
-                    "nombre": values["nombre_participante"],
-                    "tipo_documento": values["tipo_documento"],
-                    "numero_documento": values["numero_documento"],
-                    "telefono": values["telefono"],
-                    "direccion": values["direccion"],
-                    "tipo_participante": values["tipo_participante"],
-                    "imagen": values["imagen_participante"]
-                }
-                exito, mensaje = modificar_participante(participantes, numero_documento_seleccionado, nuevos_datos)
-                sg.popup(mensaje)
-                if exito:
-                    # Actualizar la lista de participantes
-                    actualizar_interfaz_participantes(participantes, window)
-
-        # Eliminar participante
-        elif event == "Eliminar Participante":
-            seleccionado = values["lista_participantes"]
-            if seleccionado:
-                numero_documento_seleccionado = seleccionado[0]
-                exito, mensaje = eliminar_participante(participantes, numero_documento_seleccionado)
-                sg.popup(mensaje)
-                if exito:
-                    # Actualizar la lista de participantes
-                    actualizar_interfaz_participantes(participantes, window)
-
-    window.close()
+        with open("configuracion.json", "w") as archivo:
+            json.dump(configuracion, archivo, indent=4)
+        sg.popup("Configuración guardada correctamente.")  # Mensaje de éxito
+    except Exception as e:
+        sg.popup(f"Error al guardar la configuración: {e}")
 
 
-# Función principal 
+def realizar_analisis(participantes, eventos, window, tipo_analisis):
+    if not eventos:
+        window["-RESULTADOS_ANALISIS-"].update("No hay eventos registrados para realizar el análisis.")
+        return
+
+    if not participantes:
+        window["-RESULTADOS_ANALISIS-"].update("No hay participantes registrados para realizar el análisis.")
+        return
+
+    # Diccionario de asistencias de cada participante
+    asistencias = {p["numero_documento"]: [] for p in participantes}
+
+    # Relacionar participantes con eventos
+    for participante in participantes:
+        for evento in eventos:
+            if participante["evento"] == evento["nombre"]:
+                asistencias[participante["numero_documento"]].append(evento["nombre"])
+
+    # Cálculos según el tipo de análisis
+    todos_eventos = set([e["nombre"] for e in eventos])
+
+    if tipo_analisis == "todos_eventos":
+        resultados = [
+            p["nombre"] for p in participantes
+            if set(asistencias[p["numero_documento"]]) == todos_eventos
+        ]
+        mensaje = f"Participantes que fueron a todos los eventos:\n{', '.join(resultados) if resultados else 'Ninguno'}"
+        window["-RESULTADOS_ANALISIS-"].update(mensaje)
+
+    elif tipo_analisis == "al_menos_un_evento":
+        resultados = [
+            p["nombre"] for p in participantes
+            if len(asistencias[p["numero_documento"]]) > 0
+        ]
+        mensaje = f"Participantes que fueron al menos a un evento:\n{', '.join(resultados) if resultados else 'Ninguno'}"
+        window["-RESULTADOS_ANALISIS_2-"].update(mensaje)
+
+    elif tipo_analisis == "solo_primer_evento":
+        primer_evento = eventos[0]["nombre"]
+        resultados = [
+            p["nombre"] for p in participantes
+            if set(asistencias[p["numero_documento"]]) == {primer_evento}
+        ]
+        mensaje = f"Participantes que fueron solo al primer evento:\n{', '.join(resultados) if resultados else 'Ninguno'}"
+        window["-RESULTADOS_ANALISIS_3-"].update(mensaje)
+
+
+
+# Función principal
 def main():
-    eventos = cargar_eventos()
-    participantes = []  
+    eventos = cargar_eventos()  # Cargar eventos previamente guardados
+    participantes = cargar_participantes()  # Cargar participantes previamente guardados
+    configuracion = cargar_configuracion()  # Cargar configuración antes de mostrar la ventana
 
-    # Mostrar ventana de login
     window_login = ventana_login()
     while True:
         event, values = window_login.read()
@@ -381,12 +400,13 @@ def main():
             contraseña = values['contraseña']
             if validar_usuario(usuario, contraseña):
                 window_login.close()
-                window_principal = ventana_principal(eventos, participantes)
+                window_principal = ventana_principal(eventos, participantes, configuracion)
                 while True:
                     event, values = window_principal.read()
                     if event == sg.WINDOW_CLOSED:
                         break
-                    # Lógica para manejar los botones y eventos
+
+                    # Manejo de eventos
                     if event == "Agregar Evento":
                         # Obtener datos del evento
                         nombre = values["nombre"]
@@ -395,8 +415,8 @@ def main():
                         lugar = values["lugar"]
                         hora = values["hora"]
                         imagen = values["imagen"]
-                        exito, mensaje = agregar_evento(eventos, nombre, fecha, cupo, lugar, hora, imagen)
-                        sg.popup(mensaje)
+                        agregar_evento(eventos, nombre, fecha, cupo, lugar, hora, imagen)
+                        
                     elif event == "Modificar Evento":
                         # Obtener datos del evento seleccionado y modificar
                         seleccionado = values["lista_eventos"]
@@ -413,6 +433,7 @@ def main():
                             sg.popup(mensaje)
                             if exito:
                                 window_principal["lista_eventos"].update([e["nombre"] for e in eventos])
+
                     elif event == "Eliminar Evento":
                         seleccionado = values["lista_eventos"]
                         if seleccionado:
@@ -420,10 +441,10 @@ def main():
                             sg.popup(mensaje)
                             if exito:
                                 window_principal["lista_eventos"].update([e["nombre"] for e in eventos])
-                    
-                    # Agregar participante
+                                
+
                     if event == "Agregar Participante":
-                        evento = values["evento"]
+                        evento_nombre = values["evento"]
                         nombre_participante = values["nombre_participante"]
                         tipo_documento = values["tipo_documento"]
                         numero_documento = values["numero_documento"]
@@ -431,6 +452,7 @@ def main():
                         direccion = values["direccion"]
                         tipo_participante = values["tipo_participante"]
                         imagen_participante = values["imagen_participante"]
+                        agregar_participante(participantes, eventos, evento_nombre, nombre_participante, numero_documento, tipo_documento, telefono, direccion, tipo_participante, imagen_participante)
                         
                         datos = {
                             "evento": values["evento"],
@@ -477,14 +499,38 @@ def main():
                             participantes = [p for p in participantes if p["nombre"] != nombre_seleccionado]
                             sg.popup(f"Participante {nombre_seleccionado} eliminado correctamente.")
                             window_principal["lista_participantes"].update([p["nombre"] for p in participantes])
+                            
+                        # Manejo de la pestaña de configuración y el botón "Guardar"
+                if event == "Guardar":
+                    # Recoger el estado de los checkboxes
+                    configuracion = {
+                        '-VALIDAR_AFORO-': values["-VALIDAR_AFORO-"],
+                        '-SOLICITAR_IMAGEN-': values["-SOLICITAR_IMAGEN-"],
+                        '-SOLICITAR_REGISTROS-': values["-SOLICITAR_REGISTROS-"],
+                        '-ELIMINAR_REGISTROS-': values["-ELIMINAR_REGISTROS-"]
+                    }
+                    # Guardar la configuración
+                    guardar_configuracion(configuracion)  # Guardar configuración
 
-                window_principal.close()
-                break
-            else:
-                sg.popup("Usuario o contraseña incorrectos.")
-    window_login.close()
+                            
+                # Manejo de la pestaña Análisis
+                if event in ['todos_eventos', 'al_menos_un_evento', 'solo_primer_evento']:
+                        realizar_analisis(participantes, eventos, window_principal, event)
+                        
+
+            window_login.close()
+
+            if event == 'Participantes que fueron a todos los eventos':
+                        realizar_analisis(participantes, eventos, window_principal, "todos_eventos")
+            elif event == 'Participantes que fueron al menos a un evento':
+                        realizar_analisis(participantes, eventos, window_principal, "al_menos_un_evento")
+            elif event == 'Participantes que fueron solo al primer evento':
+                        realizar_analisis(participantes, eventos, window_principal, "solo_primer_evento")
+
+            window_principal.close()
+            break
+        else:
+            sg.popup("Usuario o contraseña incorrectos.")
 
 if __name__ == "__main__":
     main()
-    
-    
