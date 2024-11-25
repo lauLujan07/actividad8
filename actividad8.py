@@ -3,6 +3,8 @@ import os
 import re
 import pandas as pd
 import PySimpleGUI as sg
+import matplotlib.pyplot as plt
+
 
 # Crear archivo usuarios.txt
 with open("usuarios.txt", "w") as archivo:
@@ -72,18 +74,42 @@ def ventana_principal(eventos, participantes, configuracion):
             ])],
             [sg.Tab('Análisis', [
                 [sg.Text('Participantes que fueron a todos los eventos')],
-                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS-', disabled=True)],
+                [sg.Text('', key='todos_eventos_resultados')],
                 [sg.Text('Participantes que fueron al menos a un evento')],
-                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS_2-', disabled=True)],
+                [sg.Text('', key='al_menos_un_evento_resultados')],
                 [sg.Text('Participantes que fueron solo al primer evento')],
-                [sg.Multiline('', size=(50, 10), key='-RESULTADOS_ANALISIS_3-', disabled=True)],
-                [sg.Button('Participantes que fueron a todos los eventos')],
-                [sg.Button('Participantes que fueron al menos a un evento')],
-                [sg.Button('Participantes que fueron solo al primer evento')]
+                [sg.Text('', key='solo_primer_evento_resultados')]
+            ])],
+            [sg.Tab('Gráficos', [
+                [sg.Button('Mostrar Gráficos', key='mostrar_graficos')],
+                [sg.Image(key="grafico1")],
+                [sg.Image(key="grafico2")],
+                [sg.Image(key="grafico3")],
+                [sg.Button("Generar Gráficos", key="Generar_Graficos")]
+
             ])]
         ])]
     ]
     return sg.Window('Gestión de Evento', layout)
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WINDOW_CLOSED:
+            break
+
+        if event == "Mostrar Gráficos":
+            window_graficos = ventana_graficos()
+            while True:
+                event_graficos, values_graficos = window_graficos.read()
+                if event_graficos == sg.WINDOW_CLOSED:
+                    break
+                if event_graficos == "Generar Gráficos":
+                    mostrar_graficos(participantes, eventos)  # Llamar a la función para mostrar los gráficos
+
+            window_graficos.close()
+
+    window.close()
 
 
 # Cargar eventos desde JSON
@@ -382,6 +408,50 @@ def realizar_analisis(participantes, eventos, window, tipo_analisis):
         mensaje = f"Participantes que fueron solo al primer evento:\n{', '.join(resultados) if resultados else 'Ninguno'}"
         window["-RESULTADOS_ANALISIS_3-"].update(mensaje)
 
+import matplotlib.pyplot as plt
+
+def mostrar_graficos(participantes, eventos):
+    if not participantes or not eventos:
+        sg.popup("No hay datos suficientes para generar gráficos.")
+        return
+
+    # Gráfico 1: Distribución de participantes por tipo de participante
+    tipos = [p["tipo_participante"] for p in participantes]
+    conteo_tipos = pd.Series(tipos).value_counts()
+
+    plt.figure(figsize=(6, 6))
+    conteo_tipos.plot(kind="pie", autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    plt.title("Distribución de participantes por tipo")
+    plt.ylabel("")  # Quitar etiqueta del eje Y
+    plt.savefig("grafico_tipo_participante.png")
+    plt.close()
+
+    # Gráfico 2: Participantes por evento
+    eventos_nombres = [p["evento"] for p in participantes]
+    conteo_eventos = pd.Series(eventos_nombres).value_counts()
+
+    plt.figure(figsize=(8, 6))
+    conteo_eventos.plot(kind="bar", color=plt.cm.tab20.colors)
+    plt.title("Participantes por evento")
+    plt.xlabel("Evento")
+    plt.ylabel("Cantidad de Participantes")
+    plt.savefig("grafico_participantes_evento.png")
+    plt.close()
+
+    # Gráfico 3: Eventos por fecha
+    fechas = [e["fecha"] for e in eventos]
+    conteo_fechas = pd.Series(fechas).value_counts()
+
+    plt.figure(figsize=(8, 6))
+    conteo_fechas.sort_index().plot(kind="bar", color=plt.cm.viridis.colors)
+    plt.title("Eventos por fecha")
+    plt.xlabel("Fecha")
+    plt.ylabel("Cantidad de Eventos")
+    plt.savefig("grafico_eventos_fecha.png")
+    plt.close()
+
+    sg.popup("Gráficos generados exitosamente.")
+
 
 
 # Función principal
@@ -443,8 +513,9 @@ def main():
                                 window_principal["lista_eventos"].update([e["nombre"] for e in eventos])
                                 
 
+                    # Agregar participante
                     if event == "Agregar Participante":
-                        evento_nombre = values["evento"]
+                        evento = values["evento"]
                         nombre_participante = values["nombre_participante"]
                         tipo_documento = values["tipo_documento"]
                         numero_documento = values["numero_documento"]
@@ -452,7 +523,6 @@ def main():
                         direccion = values["direccion"]
                         tipo_participante = values["tipo_participante"]
                         imagen_participante = values["imagen_participante"]
-                        agregar_participante(participantes, eventos, evento_nombre, nombre_participante, numero_documento, tipo_documento, telefono, direccion, tipo_participante, imagen_participante)
                         
                         datos = {
                             "evento": values["evento"],
@@ -526,6 +596,19 @@ def main():
                         realizar_analisis(participantes, eventos, window_principal, "al_menos_un_evento")
             elif event == 'Participantes que fueron solo al primer evento':
                         realizar_analisis(participantes, eventos, window_principal, "solo_primer_evento")
+                        
+                        
+
+            if event == "Generar_Graficos":
+                    mostrar_graficos(participantes, eventos)
+                    # Actualizar los gráficos en la ventana
+                    window_principal["grafico1"].update(filename="grafico_tipo_participante.png")
+                    window_principal["grafico2"].update(filename="grafico_participantes_evento.png")
+                    window_principal["grafico3"].update(filename="grafico_eventos_fecha.png")
+                    sg.popup("Gráficos generados correctamente.")
+                    
+
+
 
             window_principal.close()
             break

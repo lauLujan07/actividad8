@@ -72,11 +72,27 @@
         "imagen": "C:/Users/sofil/OneDrive/Pictures/perros.jpg"
     },
     {
-        "nombre": "avento10",
-        "fecha": "30/08/2024",
+        "nombre": "evento10",
+        "fecha": "28/19/5873",
+        "cupo": 50,
+        "lugar": "kwjcnkwn",
+        "hora": "18:20",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
+    },
+    {
+        "nombre": "evento11",
+        "fecha": "18/09/5874",
         "cupo": 80,
-        "lugar": "mnzb ",
-        "hora": "19:50",
+        "lugar": "n s",
+        "hora": "18:20",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/Captura de pantalla 2023-08-29 183730.png"
+    },
+    {
+        "nombre": "evento12",
+        "fecha": "18/09/5874",
+        "cupo": 80,
+        "lugar": "n s",
+        "hora": "18:20",
         "imagen": "C:/Users/sofil/OneDrive/Pictures/Captura de pantalla 2023-08-29 183730.png"
     }
 ]
