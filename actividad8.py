@@ -4,6 +4,7 @@ import re
 import pandas as pd
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
+from io import BytesIO
 
 
 # Crear archivo usuarios.txt
@@ -90,7 +91,20 @@ def ventana_principal(eventos, participantes, configuracion):
             ])]
         ])]
     ]
-    return sg.Window('Gestión de Evento', layout)
+    window = sg.Window('Gestión de Evento', layout)
+    return window
+# Diseño de la pestaña de graficos
+def ventana_graficos():
+    layout = [
+        [sg.Text("Gráficos Generados")],
+        [sg.Image(key="grafico1")],
+        [sg.Image(key="grafico2")],
+        [sg.Image(key="grafico3")],
+        [sg.Button("Cerrar")]
+    ]
+    window = sg.Window("Ventana de Gráficos", layout)
+    return window
+
 
     while True:
         event, values = window.read()
@@ -184,7 +198,7 @@ def modificar_evento(eventos, nombre_seleccionado, nuevos_datos):
         if not all(nuevos_datos.values()):
             raise ValueError("Todos los campos son obligatorios.")
         
-        # Validar que el nombre sea único (excepto para el propio evento)
+        # Validar que el nombre sea único 
         for evento in eventos:
             if evento["nombre"] == nuevos_datos["nombre"] and evento["nombre"] != nombre_seleccionado:
                 raise ValueError("Ya existe un evento con este nombre.")
@@ -239,9 +253,7 @@ def actualizar_interfaz_eventos(eventos, window):
     window["evento"].update(values=nombres_eventos)
     
 def guardar_participantes(participantes):
-    """
-    Guarda la lista de participantes en un archivo JSON.
-    """
+
     try:
         with open("participantes.json", "w") as archivo:
             json.dump(participantes, archivo, indent=4)
@@ -330,11 +342,11 @@ def cargar_participantes():
         except json.JSONDecodeError:
             sg.popup("Error al leer el archivo participantes.json. Archivo corrupto.")
             return []
-    return []  # Si no existe el archivo, retorna una lista vacía
+    return []  
 
 
     
-# Función para cargar la configuración desde un archivo JSON
+# cargar la configuración desde un archivo JSON
 def cargar_configuracion():
     if os.path.exists("configuracion.json"):
         try:
@@ -343,7 +355,7 @@ def cargar_configuracion():
                 return configuracion
         except json.JSONDecodeError:
             sg.popup("Error al leer el archivo de configuración. Archivo corrupto.")
-            return {}  # Si el archivo está corrupto, retorna un diccionario vacío
+            return {}  
     return {
         '-VALIDAR_AFORO-': True,
         '-SOLICITAR_IMAGEN-': True,
@@ -352,7 +364,7 @@ def cargar_configuracion():
     }  
 
 
-# Función para guardar la configuración en un archivo JSON
+# guardar la configuración en un archivo JSON
 def guardar_configuracion(configuracion):
     try:
         with open("configuracion.json", "w") as archivo:
@@ -408,7 +420,6 @@ def realizar_analisis(participantes, eventos, window, tipo_analisis):
         mensaje = f"Participantes que fueron solo al primer evento:\n{', '.join(resultados) if resultados else 'Ninguno'}"
         window["-RESULTADOS_ANALISIS_3-"].update(mensaje)
 
-import matplotlib.pyplot as plt
 
 def mostrar_graficos(participantes, eventos):
     if not participantes or not eventos:
@@ -422,7 +433,7 @@ def mostrar_graficos(participantes, eventos):
     plt.figure(figsize=(6, 6))
     conteo_tipos.plot(kind="pie", autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
     plt.title("Distribución de participantes por tipo")
-    plt.ylabel("")  # Quitar etiqueta del eje Y
+    plt.ylabel("") 
     plt.savefig("grafico_tipo_participante.png")
     plt.close()
 
@@ -443,22 +454,77 @@ def mostrar_graficos(participantes, eventos):
     conteo_fechas = pd.Series(fechas).value_counts()
 
     plt.figure(figsize=(8, 6))
-    conteo_fechas.sort_index().plot(kind="bar", color=plt.cm.viridis.colors)
+    conteo_fechas.sort_index().plot(kind="barh", color=plt.cm.viridis.colors)
     plt.title("Eventos por fecha")
-    plt.xlabel("Fecha")
-    plt.ylabel("Cantidad de Eventos")
+    plt.xlabel("Cantidad de Eventos")
+    plt.ylabel("Fecha")
     plt.savefig("grafico_eventos_fecha.png")
     plt.close()
 
     sg.popup("Gráficos generados exitosamente.")
 
+def crear_grafico_participantes_por_tipo(participantes):
+    # DataFrame de Pandas 
+    df = pd.DataFrame(participantes)
+    tipo_participante_count = df['tipo_participante'].value_counts()
+
+    # Crear el gráfico circular
+    fig, ax = plt.subplots()
+    tipo_participante_count.plot(kind='pie', autopct='%1.1f%%', ax=ax, colors=['#ff9999','#66b3ff','#99ff99'])
+    ax.set_ylabel('')
+
+    # Guardar el gráfico en un objeto de BytesIO 
+    img_bytes = BytesIO()
+    plt.savefig(img_bytes, format='png')
+    img_bytes.seek(0)
+    
+    return img_bytes
+
+def crear_grafico_participantes_por_evento(participantes, eventos):
+    # DataFrame de Pandas para la cantidad de participantes 
+    df = pd.DataFrame(participantes)
+    participantes_por_evento = df['evento'].value_counts()
+
+    # Crear el gráfico de barras
+    fig, ax = plt.subplots()
+    participantes_por_evento.plot(kind='bar', ax=ax, color='skyblue')
+    ax.set_xlabel('Evento')
+    ax.set_ylabel('Número de Participantes')
+    ax.set_title('Participantes por Evento')
+
+    # Guardar el gráfico en un objeto de BytesIO 
+    img_bytes = BytesIO()
+    plt.savefig(img_bytes, format='png')
+    img_bytes.seek(0)
+    
+    return img_bytes
+
+def crear_grafico_eventos_por_fecha(eventos):
+    # DataFrame de Pandas para la cantidad de eventos por fecha
+    df = pd.DataFrame(eventos)
+    eventos_por_fecha = df['fecha'].value_counts()
+
+    # Crear el gráfico de barras
+    fig, ax = plt.subplots()
+    eventos_por_fecha.plot(kind='bar', ax=ax, color='lightcoral')
+    ax.set_xlabel('Fecha')
+    ax.set_ylabel('Número de Eventos')
+    ax.set_title('Eventos por Fecha')
+
+    # Guardar el gráfico en un objeto de BytesIO 
+    img_bytes = BytesIO()
+    plt.savefig(img_bytes, format='png')
+    img_bytes.seek(0)
+    
+    return img_bytes
 
 
 # Función principal
 def main():
-    eventos = cargar_eventos()  # Cargar eventos previamente guardados
-    participantes = cargar_participantes()  # Cargar participantes previamente guardados
-    configuracion = cargar_configuracion()  # Cargar configuración antes de mostrar la ventana
+    eventos = cargar_eventos()  
+    participantes = cargar_participantes()  
+
+    configuracion = cargar_configuracion() 
 
     window_login = ventana_login()
     while True:
@@ -572,14 +638,14 @@ def main():
                             
                         # Manejo de la pestaña de configuración y el botón "Guardar"
                 if event == "Guardar":
-                    # Recoger el estado de los checkboxes
+                    
                     configuracion = {
                         '-VALIDAR_AFORO-': values["-VALIDAR_AFORO-"],
                         '-SOLICITAR_IMAGEN-': values["-SOLICITAR_IMAGEN-"],
                         '-SOLICITAR_REGISTROS-': values["-SOLICITAR_REGISTROS-"],
                         '-ELIMINAR_REGISTROS-': values["-ELIMINAR_REGISTROS-"]
                     }
-                    # Guardar la configuración
+                    
                     guardar_configuracion(configuracion)  # Guardar configuración
 
                             
@@ -605,6 +671,7 @@ def main():
                     window_principal["grafico1"].update(filename="grafico_tipo_participante.png")
                     window_principal["grafico2"].update(filename="grafico_participantes_evento.png")
                     window_principal["grafico3"].update(filename="grafico_eventos_fecha.png")
+
                     sg.popup("Gráficos generados correctamente.")
                     
 

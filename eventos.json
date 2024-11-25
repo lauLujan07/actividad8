@@ -73,10 +73,10 @@
     },
     {
         "nombre": "evento10",
-        "fecha": "28/19/5873",
-        "cupo": 50,
-        "lugar": "kwjcnkwn",
-        "hora": "18:20",
+        "fecha": "18/05/1615",
+        "cupo": 90,
+        "lugar": "jv,v,",
+        "hora": "23:00",
         "imagen": "C:/Users/sofil/OneDrive/Pictures/2.avif"
     },
     {
@@ -94,5 +94,53 @@
         "lugar": "n s",
         "hora": "18:20",
         "imagen": "C:/Users/sofil/OneDrive/Pictures/Captura de pantalla 2023-08-29 183730.png"
+    },
+    {
+        "nombre": "evento13",
+        "fecha": "58/02/0515",
+        "cupo": 90,
+        "lugar": "kjagvn",
+        "hora": "23:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/perrito2.jpg"
+    },
+    {
+        "nombre": "evento14",
+        "fecha": "119/09/2605",
+        "cupo": 50,
+        "lugar": "jlavn",
+        "hora": "23:59",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/perro y gato2.jpg"
+    },
+    {
+        "nombre": "evento15",
+        "fecha": "19/20/5942",
+        "cupo": 95,
+        "lugar": "jkvaczn",
+        "hora": "16:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/compra4.jpeg"
+    },
+    {
+        "nombre": "evento16",
+        "fecha": "19/09/5249",
+        "cupo": 90,
+        "lugar": "jhv",
+        "hora": "21:00",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/gato3.jpg"
+    },
+    {
+        "nombre": "evento17",
+        "fecha": "18/29/26",
+        "cupo": 30,
+        "lugar": ".s v",
+        "hora": "20:45",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/adoptar.jpg"
+    },
+    {
+        "nombre": "evento18",
+        "fecha": "19/20/5942",
+        "cupo": 95,
+        "lugar": "jkvaczn",
+        "hora": "16:50",
+        "imagen": "C:/Users/sofil/OneDrive/Pictures/compra4.jpeg"
     }
 ]
